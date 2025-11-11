@@ -19,7 +19,7 @@ export default function AuthScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    
+
     const { login, register, isLoading } = useAuthStore();
 
     const handleSubmit = async () => {

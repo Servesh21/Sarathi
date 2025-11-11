@@ -36,10 +36,10 @@ api.interceptors.response.use(
 export const authAPI = {
     login: (email: string, password: string) =>
         api.post('/auth/login', { email, password }),
-    
+
     register: (name: string, email: string, password: string) =>
         api.post('/auth/register', { name, email, password }),
-    
+
     refreshToken: (refreshToken: string) =>
         api.post('/auth/refresh', { refresh_token: refreshToken }),
 };
@@ -48,10 +48,10 @@ export const authAPI = {
 export const agentAPI = {
     sendMessage: (message: string, conversationId?: string) =>
         api.post('/agent/message', { message, conversation_id: conversationId }),
-    
+
     getConversations: () =>
         api.get('/agent/conversations'),
-    
+
     getConversation: (conversationId: string) =>
         api.get(`/agent/conversations/${conversationId}`),
 };
@@ -60,13 +60,13 @@ export const agentAPI = {
 export const userAPI = {
     getProfile: () =>
         api.get('/user/profile'),
-    
+
     updateProfile: (data: any) =>
         api.put('/user/profile', data),
-    
+
     getVehicles: () =>
         api.get('/user/vehicles'),
-    
+
     addVehicle: (vehicleData: any) =>
         api.post('/user/vehicles', vehicleData),
 };

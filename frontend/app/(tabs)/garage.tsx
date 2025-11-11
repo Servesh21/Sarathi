@@ -32,7 +32,7 @@ export default function GarageScreen() {
             fuelEfficiency: 32,
         },
     ]);
-    
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [newVehicle, setNewVehicle] = useState({
         make: '',

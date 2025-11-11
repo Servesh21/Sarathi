@@ -200,9 +200,9 @@ export default function GoalsScreen() {
                                     {goal.currentValue}{goal.unit} / {goal.targetValue}{goal.unit}
                                 </Text>
                             </View>
-                            <View style={{ 
-                                height: 8, 
-                                backgroundColor: '#e5e7eb', 
+                            <View style={{
+                                height: 8,
+                                backgroundColor: '#e5e7eb',
                                 borderRadius: 4,
                                 overflow: 'hidden'
                             }}>
@@ -213,11 +213,11 @@ export default function GoalsScreen() {
                                     borderRadius: 4,
                                 }} />
                             </View>
-                            <Text style={{ 
-                                textAlign: 'right', 
-                                color: '#6b7280', 
-                                fontSize: 12, 
-                                marginTop: 4 
+                            <Text style={{
+                                textAlign: 'right',
+                                color: '#6b7280',
+                                fontSize: 12,
+                                marginTop: 4
                             }}>
                                 {getProgressPercentage(goal).toFixed(0)}% Complete
                             </Text>
@@ -242,10 +242,10 @@ export default function GoalsScreen() {
                 ))}
 
                 {goals.length === 0 && (
-                    <View style={{ 
-                        backgroundColor: 'white', 
-                        borderRadius: 16, 
-                        padding: 40, 
+                    <View style={{
+                        backgroundColor: 'white',
+                        borderRadius: 16,
+                        padding: 40,
                         alignItems: 'center',
                         shadowColor: '#000',
                         shadowOffset: { width: 0, height: 2 },
