@@ -1,138 +1,72 @@
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API base URL - change this for production
-const API_BASE_URL = 'http://localhost:8000';
+// Configure API base URL - update this to match your backend
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
-// Create axios instance
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+export const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
 // Request interceptor to add auth token
-apiClient.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem('authToken');
+api.interceptors.request.use((config) => {
+    // TODO: Get token from auth store
+    const token = null; // Replace with actual token from store
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+});
 
 // Response interceptor for error handling
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid, clear storage
-      await AsyncStorage.removeItem('authToken');
-      // You can trigger a logout action here
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            // TODO: Handle unauthorized - logout user
+            console.log('Unauthorized request');
+        }
+        return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
 );
 
-// Auth API calls
+// Auth endpoints
 export const authAPI = {
-  register: async (email: string, password: string, fullName: string) => {
-    const response = await apiClient.post('/api/v1/auth/register', {
-      email,
-      password,
-      full_name: fullName,
-    });
-    return response.data;
-  },
-
-  login: async (email: string, password: string) => {
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
+    login: (email: string, password: string) =>
+        api.post('/auth/login', { email, password }),
     
-    const response = await apiClient.post('/api/v1/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-    return response.data;
-  },
-
-  getProfile: async () => {
-    const response = await apiClient.get('/api/v1/auth/me');
-    return response.data;
-  },
+    register: (name: string, email: string, password: string) =>
+        api.post('/auth/register', { name, email, password }),
+    
+    refreshToken: (refreshToken: string) =>
+        api.post('/auth/refresh', { refresh_token: refreshToken }),
 };
 
-// Agent API calls
+// Agent interaction endpoints
 export const agentAPI = {
-  chat: async (query: string, context?: any) => {
-    const response = await apiClient.post('/api/v1/agent/chat', {
-      query,
-      context,
-    });
-    return response.data;
-  },
-
-  getConversationHistory: async (limit: number = 50) => {
-    const response = await apiClient.get('/api/v1/agent/conversation-history', {
-      params: { limit },
-    });
-    return response.data;
-  },
+    sendMessage: (message: string, conversationId?: string) =>
+        api.post('/agent/message', { message, conversation_id: conversationId }),
+    
+    getConversations: () =>
+        api.get('/agent/conversations'),
+    
+    getConversation: (conversationId: string) =>
+        api.get(`/agent/conversations/${conversationId}`),
 };
 
-// User profile API calls
+// User profile endpoints
 export const userAPI = {
-  getProfile: async () => {
-    const response = await apiClient.get('/api/v1/users/profile');
-    return response.data;
-  },
-
-  updateProfile: async (data: { full_name?: string }) => {
-    const response = await apiClient.put('/api/v1/users/profile', data);
-    return response.data;
-  },
-
-  getVehicles: async () => {
-    const response = await apiClient.get('/api/v1/users/vehicles');
-    return response.data;
-  },
-
-  addVehicle: async (vehicle: {
-    make: string;
-    model: string;
-    year: number;
-    license_plate: string;
-    vehicle_type?: string;
-  }) => {
-    const response = await apiClient.post('/api/v1/users/vehicles', vehicle);
-    return response.data;
-  },
-
-  getTrips: async (limit: number = 50) => {
-    const response = await apiClient.get('/api/v1/users/trips', {
-      params: { limit },
-    });
-    return response.data;
-  },
-
-  addTrip: async (trip: {
-    vehicle_id: number;
-    start_location: string;
-    end_location: string;
-    distance_km: number;
-    earnings?: number;
-  }) => {
-    const response = await apiClient.post('/api/v1/users/trips', trip);
-    return response.data;
-  },
+    getProfile: () =>
+        api.get('/user/profile'),
+    
+    updateProfile: (data: any) =>
+        api.put('/user/profile', data),
+    
+    getVehicles: () =>
+        api.get('/user/vehicles'),
+    
+    addVehicle: (vehicleData: any) =>
+        api.post('/user/vehicles', vehicleData),
 };
-
-export default apiClient;

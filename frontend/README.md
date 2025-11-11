@@ -1,141 +1,50 @@
-# 📱 Sarathi Frontend
+# Welcome to your Expo app 👋
 
-React Native mobile application for the Sarathi driving companion.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Quick Start
+## Get started
 
-### Prerequisites
+1. Install dependencies
 
-- Node.js 18+
-- npm or yarn
-- Expo CLI (installed globally): `npm install -g expo-cli`
-- Expo Go app on your mobile device (iOS/Android)
-
-### Installation
-
-1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the development server:
+2. Start the app
+
    ```bash
-   npm start
+   npx expo start
    ```
 
-3. Scan the QR code with:
-   - **iOS**: Camera app
-   - **Android**: Expo Go app
+In the output, you'll find options to open the app in a
 
-### Running on Specific Platforms
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-```bash
-# iOS Simulator (macOS only)
-npm run ios
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-# Android Emulator
-npm run android
+## Get a fresh project
 
-# Web browser
-npm run web
-```
-
-## Features
-
-### Screens
-- **Login/Register**: User authentication
-- **Dashboard**: Main screen with earnings, stats, and AI chat
-- **Garage**: Vehicle management
-- **Goals**: Financial goal tracking
-
-### Components
-- **VoiceInputButton**: Voice-to-text input (placeholder)
-- **HealthMeter**: Driver health score visualization
-
-### Styling
-
-This app uses **Tailwind CSS v4** via NativeWind for styling:
-- Utility-first CSS framework
-- Easy responsive design
-- Consistent theming
-
-Example:
-```tsx
-<View className="flex-1 bg-gray-50 p-4">
-  <Text className="text-2xl font-bold text-primary-600">
-    Hello Sarathi
-  </Text>
-</View>
-```
-
-## Project Structure
-
-```
-frontend/
-├── src/
-│   ├── screens/        # App screens
-│   ├── components/     # Reusable components
-│   ├── navigation/     # Navigation config
-│   ├── services/       # API client
-│   └── hooks/          # Custom React hooks
-├── App.tsx             # Root component
-├── package.json
-└── tailwind.config.js  # Tailwind configuration
-```
-
-## Configuration
-
-### API Endpoint
-
-Update the API URL in `src/services/api.ts`:
-```typescript
-const API_BASE_URL = 'http://localhost:8000';  // For local dev
-// const API_BASE_URL = 'https://your-api.com';  // For production
-```
-
-### Environment Variables
-
-Create a `.env` file (if needed):
-```
-API_URL=http://localhost:8000
-```
-
-## State Management
-
-Uses **Zustand** for lightweight state management:
-- Auth state in `src/hooks/useAuth.ts`
-- Easy to extend for other stores
-
-## Testing
+When you're ready, run:
 
 ```bash
-npm test
+npm run reset-project
 ```
 
-## Build for Production
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-```bash
-# iOS
-expo build:ios
+## Learn more
 
-# Android
-expo build:android
-```
+To learn more about developing your project with Expo, look at the following resources:
 
-## Troubleshooting
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-### Metro bundler issues
-```bash
-npm start -- --clear
-```
+## Join the community
 
-### Node modules issues
-```bash
-rm -rf node_modules
-npm install
-```
+Join our community of developers creating universal apps.
 
-### Expo cache issues
-```bash
-expo start -c
-```
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
