@@ -19,31 +19,31 @@ export const Colors = {
     primary: primaryGreen,
     primaryLight: primaryGreenLight,
     primaryDark: '#065f46',
-    
+
     // Action colors - bright and motivational
     action: actionOrange,
     actionLight: actionYellow,
-    
+
     // Status colors
     success: '#10b981',
     warning: '#f59e0b',
     danger: '#ef4444',
-    
+
     // Neutral colors - clean and high contrast
     background: '#ffffff',
     backgroundSecondary: '#f9fafb',
     backgroundCard: '#f3f4f6',
-    
+
     // Text colors - high contrast for readability
     text: '#111827',
     textSecondary: '#6b7280',
     textLight: '#9ca3af',
     textInverse: '#ffffff',
-    
+
     // Border colors
     border: '#e5e7eb',
     borderLight: '#f3f4f6',
-    
+
     // Legacy mappings for compatibility
     tint: primaryGreen,
     icon: '#6b7280',
@@ -55,31 +55,31 @@ export const Colors = {
     primary: primaryGreenLight,
     primaryLight: '#34d399',
     primaryDark: '#059669',
-    
+
     // Action colors
     action: actionYellow,
     actionLight: '#fcd34d',
-    
+
     // Status colors
     success: '#10b981',
     warning: '#fbbf24',
     danger: '#f87171',
-    
+
     // Neutral colors
     background: '#111827',
     backgroundSecondary: '#1f2937',
     backgroundCard: '#374151',
-    
+
     // Text colors
     text: '#f9fafb',
     textSecondary: '#d1d5db',
     textLight: '#9ca3af',
     textInverse: '#111827',
-    
+
     // Border colors
     border: '#374151',
     borderLight: '#4b5563',
-    
+
     // Legacy mappings
     tint: primaryGreenLight,
     icon: '#9ca3af',

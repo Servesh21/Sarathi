@@ -1,443 +1,601 @@
-import React, { useState } from 'react';
+/**
+ * Goals Screen - Financial goal management and tracking
+ * Helps drivers save for important financial objectives
+ * 
+ * Features:
+ * 1. Active Goals List with progress tracking
+ * 2. Add new goal functionality
+ * 3. Quick fund addition to goals
+ * 4. Goal completion celebrations
+ */
+import React, { useState, useEffect } from 'react';
 import {
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Modal,
-    TextInput,
-    Alert,
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
+  Modal,
+  TextInput,
+  Platform,
+  StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { GoalProgressCard } from '@/components/goal-progress-card';
 import { LinearGradient } from 'expo-linear-gradient';
-import { agentAPI } from '../../src/services/api';
 
 interface Goal {
-    id: string;
-    title: string;
-    description: string;
-    targetValue: number;
-    currentValue: number;
-    unit: string;
-    category: 'safety' | 'efficiency' | 'savings' | 'distance';
-    deadline: string;
-    completed: boolean;
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  icon: keyof typeof Ionicons.glyphMap;
+  category: 'emergency' | 'vehicle' | 'family' | 'health' | 'business' | 'other';
+  createdAt: Date;
+  targetDate?: Date;
 }
+
+interface NewGoalForm {
+  name: string;
+  targetAmount: string;
+  category: Goal['category'];
+  icon: keyof typeof Ionicons.glyphMap;
+}
+
+const goalCategories = [
+  { key: 'emergency' as const, label: 'Emergency Fund', icon: 'umbrella' as const, color: '#ef4444' },
+  { key: 'vehicle' as const, label: 'Vehicle & Maintenance', icon: 'car' as const, color: '#3b82f6' },
+  { key: 'family' as const, label: 'Family & Education', icon: 'home' as const, color: '#10b981' },
+  { key: 'health' as const, label: 'Health & Insurance', icon: 'medical' as const, color: '#f59e0b' },
+  { key: 'business' as const, label: 'Business Growth', icon: 'trending-up' as const, color: '#8b5cf6' },
+  { key: 'other' as const, label: 'Other Goals', icon: 'star' as const, color: '#6b7280' },
+];
 
 export default function GoalsScreen() {
-    const [goals, setGoals] = useState<Goal[]>([
-        {
-            id: '1',
-            title: 'Improve Safety Score',
-            description: 'Maintain a 95% safety score for the month',
-            targetValue: 95,
-            currentValue: 88,
-            unit: '%',
-            category: 'safety',
-            deadline: '2025-01-31',
-            completed: false,
-        },
-        {
-            id: '2',
-            title: 'Fuel Efficiency Goal',
-            description: 'Achieve 35 MPG average this month',
-            targetValue: 35,
-            currentValue: 32.5,
-            unit: 'MPG',
-            category: 'efficiency',
-            deadline: '2025-01-31',
-            completed: false,
-        },
-        {
-            id: '3',
-            title: 'Save on Gas',
-            description: 'Save $200 this month through efficient driving',
-            targetValue: 200,
-            currentValue: 145,
-            unit: '$',
-            category: 'savings',
-            deadline: '2025-01-31',
-            completed: false,
-        },
-    ]);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const [refreshing, setRefreshing] = useState(false);
+  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [showAddFunds, setShowAddFunds] = useState<string | null>(null);
+  const [fundAmount, setFundAmount] = useState('');
 
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newGoal, setNewGoal] = useState({
-        title: '',
-        description: '',
-        targetValue: '',
-        unit: '',
-        category: 'safety' as Goal['category'],
-        deadline: '',
-    });
+  // Mock goals data - replace with real API calls
+  const [goals, setGoals] = useState<Goal[]>([
+    {
+      id: '1',
+      name: 'Monsoon Emergency Fund',
+      targetAmount: 25000,
+      currentAmount: 18500,
+      icon: 'umbrella',
+      category: 'emergency',
+      createdAt: new Date('2024-10-01'),
+      targetDate: new Date('2025-06-01'),
+    },
+    {
+      id: '2',
+      name: 'Car Service & Repair Fund',
+      targetAmount: 15000,
+      currentAmount: 8200,
+      icon: 'car',
+      category: 'vehicle',
+      createdAt: new Date('2024-11-01'),
+    },
+    {
+      id: '3',
+      name: 'Child School Fees',
+      targetAmount: 35000,
+      currentAmount: 12000,
+      icon: 'school',
+      category: 'family',
+      createdAt: new Date('2024-09-15'),
+      targetDate: new Date('2025-04-01'),
+    },
+  ]);
 
-    const addGoal = () => {
-        if (!newGoal.title || !newGoal.targetValue) {
-            Alert.alert('Error', 'Please fill in the required fields');
-            return;
-        }
+  const [newGoal, setNewGoal] = useState<NewGoalForm>({
+    name: '',
+    targetAmount: '',
+    category: 'emergency',
+    icon: 'umbrella',
+  });
 
-        const goal: Goal = {
-            id: Date.now().toString(),
-            title: newGoal.title,
-            description: newGoal.description,
-            targetValue: parseFloat(newGoal.targetValue),
-            currentValue: 0,
-            unit: newGoal.unit,
-            category: newGoal.category,
-            deadline: newGoal.deadline,
-            completed: false,
-        };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
-        setGoals([...goals, goal]);
-        setShowAddModal(false);
-        setNewGoal({
-            title: '',
-            description: '',
-            targetValue: '',
-            unit: '',
-            category: 'safety',
-            deadline: '',
-        });
+  const handleAddFunds = (goalId: string, amount: number) => {
+    setGoals(prev => prev.map(goal => 
+      goal.id === goalId 
+        ? { ...goal, currentAmount: goal.currentAmount + amount }
+        : goal
+    ));
+
+    // Check if goal is completed
+    const updatedGoal = goals.find(g => g.id === goalId);
+    if (updatedGoal && updatedGoal.currentAmount + amount >= updatedGoal.targetAmount) {
+      Alert.alert(
+        '🎉 Goal Completed!',
+        `Congratulations! You've successfully saved ₹${updatedGoal.targetAmount.toLocaleString()} for "${updatedGoal.name}"!`,
+        [{ text: 'Celebrate!', style: 'default' }]
+      );
+    }
+
+    setShowAddFunds(null);
+    setFundAmount('');
+  };
+
+  const handleCreateGoal = () => {
+    if (!newGoal.name.trim() || !newGoal.targetAmount.trim()) {
+      Alert.alert('Missing Information', 'Please fill in all required fields.');
+      return;
+    }
+
+    const targetAmount = parseInt(newGoal.targetAmount.replace(/[^\d]/g, ''));
+    if (targetAmount <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid target amount.');
+      return;
+    }
+
+    const goal: Goal = {
+      id: Date.now().toString(),
+      name: newGoal.name.trim(),
+      targetAmount,
+      currentAmount: 0,
+      icon: newGoal.icon,
+      category: newGoal.category,
+      createdAt: new Date(),
     };
 
-    const getProgressPercentage = (goal: Goal) => {
-        return Math.min((goal.currentValue / goal.targetValue) * 100, 100);
-    };
+    setGoals(prev => [...prev, goal]);
+    setNewGoal({ name: '', targetAmount: '', category: 'emergency', icon: 'umbrella' });
+    setShowAddGoal(false);
 
-    const getCategoryColor = (category: Goal['category']) => {
-        switch (category) {
-            case 'safety': return '#ef4444';
-            case 'efficiency': return '#10b981';
-            case 'savings': return '#f59e0b';
-            case 'distance': return '#8b5cf6';
-            default: return '#6b7280';
-        }
-    };
+    Alert.alert('Goal Created!', `Your goal "${goal.name}" has been created successfully.`);
+  };
 
-    const getCategoryIcon = (category: Goal['category']) => {
-        switch (category) {
-            case 'safety': return '🛡️';
-            case 'efficiency': return '⛽';
-            case 'savings': return '💰';
-            case 'distance': return '📍';
-            default: return '🎯';
-        }
-    };
+  const handleCategorySelect = (category: Goal['category']) => {
+    const categoryInfo = goalCategories.find(c => c.key === category);
+    setNewGoal(prev => ({
+      ...prev,
+      category,
+      icon: categoryInfo?.icon || 'star'
+    }));
+  };
 
-    return (
-        <View style={{ flex: 1, backgroundColor: '#f9fafb' }}>
-            <LinearGradient
-                colors={['#0ea5e9', '#3b82f6']}
-                style={{ paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 }}
-            >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <View>
-                        <Text style={{ color: 'white', fontSize: 28, fontWeight: 'bold', marginBottom: 8 }}>
-                            My Goals
-                        </Text>
-                        <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16 }}>
-                            Track your driving progress
-                        </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                borderRadius: 12,
-                                padding: 12,
-                                minWidth: 50,
-                                alignItems: 'center',
-                            }}
-                            onPress={async () => {
-                                try {
-                                    const response = await agentAPI.sendMessage("Give me advice on improving my driving goals and earnings");
-                                    Alert.alert("AI Advice", response.data.response || "I can help you optimize your driving goals!");
-                                } catch (error) {
-                                    Alert.alert("AI Assistant", "💡 Try asking about earnings, weather, or finding mechanics on the main dashboard!");
-                                }
-                            }}
-                        >
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>🤖 AI</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: 'rgba(255,255,255,0.2)',
-                                borderRadius: 12,
-                                padding: 12,
-                            }}
-                            onPress={() => setShowAddModal(true)}
-                        >
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>+ New</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </LinearGradient>
+  const formatCurrency = (amount: string) => {
+    const numericAmount = amount.replace(/[^\d]/g, '');
+    return numericAmount ? `₹${parseInt(numericAmount).toLocaleString()}` : '';
+  };
 
-            <ScrollView style={{ flex: 1, padding: 20 }}>
-                {goals.map((goal) => (
-                    <View
-                        key={goal.id}
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: 16,
-                            padding: 20,
-                            marginBottom: 16,
-                            shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 3,
-                        }}
-                    >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                            <Text style={{ fontSize: 24, marginRight: 12 }}>
-                                {getCategoryIcon(goal.category)}
-                            </Text>
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginBottom: 4 }}>
-                                    {goal.title}
-                                </Text>
-                                <Text style={{ color: '#6b7280', fontSize: 14 }}>
-                                    {goal.description}
-                                </Text>
-                            </View>
-                            <View style={{
-                                backgroundColor: getCategoryColor(goal.category),
-                                borderRadius: 20,
-                                paddingHorizontal: 8,
-                                paddingVertical: 2,
-                            }}>
-                                <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
-                                    {goal.category.toUpperCase()}
-                                </Text>
-                            </View>
-                        </View>
+  const totalSaved = goals.reduce((sum, goal) => sum + goal.currentAmount, 0);
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.targetAmount, 0);
 
-                        <View style={{ marginBottom: 12 }}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <Text style={{ fontSize: 16, fontWeight: '600', color: '#374151' }}>
-                                    Progress
-                                </Text>
-                                <Text style={{ fontSize: 16, fontWeight: '600', color: '#374151' }}>
-                                    {goal.currentValue}{goal.unit} / {goal.targetValue}{goal.unit}
-                                </Text>
-                            </View>
-                            <View style={{
-                                height: 8,
-                                backgroundColor: '#e5e7eb',
-                                borderRadius: 4,
-                                overflow: 'hidden'
-                            }}>
-                                <View style={{
-                                    height: '100%',
-                                    width: `${getProgressPercentage(goal)}%`,
-                                    backgroundColor: getCategoryColor(goal.category),
-                                    borderRadius: 4,
-                                }} />
-                            </View>
-                            <Text style={{
-                                textAlign: 'right',
-                                color: '#6b7280',
-                                fontSize: 12,
-                                marginTop: 4
-                            }}>
-                                {getProgressPercentage(goal).toFixed(0)}% Complete
-                            </Text>
-                        </View>
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
 
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text style={{ color: '#6b7280', fontSize: 14 }}>
-                                Due: {new Date(goal.deadline).toLocaleDateString()}
-                            </Text>
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: '#f3f4f6',
-                                    borderRadius: 8,
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 8,
-                                }}
-                            >
-                                <Text style={{ color: '#374151', fontWeight: '500' }}>Update Progress</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                ))}
-
-                {goals.length === 0 && (
-                    <View style={{
-                        backgroundColor: 'white',
-                        borderRadius: 16,
-                        padding: 40,
-                        alignItems: 'center',
-                        shadowColor: '#000',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.1,
-                        shadowRadius: 4,
-                        elevation: 3,
-                    }}>
-                        <Text style={{ fontSize: 48, marginBottom: 16 }}>🎯</Text>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#1f2937', marginBottom: 8 }}>
-                            No Goals Yet
-                        </Text>
-                        <Text style={{ color: '#6b7280', textAlign: 'center', marginBottom: 20 }}>
-                            Set your first driving goal to start tracking your progress!
-                        </Text>
-                        <TouchableOpacity
-                            style={{
-                                backgroundColor: '#0ea5e9',
-                                borderRadius: 12,
-                                paddingHorizontal: 24,
-                                paddingVertical: 12,
-                            }}
-                            onPress={() => setShowAddModal(true)}
-                        >
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Create Your First Goal</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
-            </ScrollView>
-
-            <Modal visible={showAddModal} animationType="slide" presentationStyle="pageSheet">
-                <View style={{ flex: 1, backgroundColor: 'white' }}>
-                    <View style={{ padding: 20, borderBottomWidth: 1, borderBottomColor: '#e5e7eb' }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                                <Text style={{ color: '#6b7280', fontSize: 16 }}>Cancel</Text>
-                            </TouchableOpacity>
-                            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>New Goal</Text>
-                            <TouchableOpacity onPress={addGoal}>
-                                <Text style={{ color: '#0ea5e9', fontSize: 16, fontWeight: '600' }}>Save</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-
-                    <ScrollView style={{ padding: 20 }}>
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#374151' }}>
-                                Goal Title *
-                            </Text>
-                            <TextInput
-                                style={{
-                                    borderWidth: 1,
-                                    borderColor: '#d1d5db',
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    fontSize: 16,
-                                    backgroundColor: '#f9fafb',
-                                }}
-                                value={newGoal.title}
-                                onChangeText={(text) => setNewGoal({ ...newGoal, title: text })}
-                                placeholder="Improve safety score, Save money..."
-                            />
-                        </View>
-
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#374151' }}>
-                                Description
-                            </Text>
-                            <TextInput
-                                style={{
-                                    borderWidth: 1,
-                                    borderColor: '#d1d5db',
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    fontSize: 16,
-                                    backgroundColor: '#f9fafb',
-                                    minHeight: 80,
-                                }}
-                                value={newGoal.description}
-                                onChangeText={(text) => setNewGoal({ ...newGoal, description: text })}
-                                placeholder="Describe your goal..."
-                                multiline
-                                textAlignVertical="top"
-                            />
-                        </View>
-
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#374151' }}>
-                                Category
-                            </Text>
-                            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                                {(['safety', 'efficiency', 'savings', 'distance'] as Goal['category'][]).map((category) => (
-                                    <TouchableOpacity
-                                        key={category}
-                                        style={{
-                                            backgroundColor: newGoal.category === category ? getCategoryColor(category) : '#f3f4f6',
-                                            borderRadius: 20,
-                                            paddingHorizontal: 16,
-                                            paddingVertical: 8,
-                                        }}
-                                        onPress={() => setNewGoal({ ...newGoal, category })}
-                                    >
-                                        <Text style={{
-                                            color: newGoal.category === category ? 'white' : '#374151',
-                                            fontWeight: '500',
-                                        }}>
-                                            {getCategoryIcon(category)} {category.charAt(0).toUpperCase() + category.slice(1)}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#374151' }}>
-                                Target Value *
-                            </Text>
-                            <View style={{ flexDirection: 'row', gap: 12 }}>
-                                <TextInput
-                                    style={{
-                                        flex: 2,
-                                        borderWidth: 1,
-                                        borderColor: '#d1d5db',
-                                        borderRadius: 12,
-                                        padding: 16,
-                                        fontSize: 16,
-                                        backgroundColor: '#f9fafb',
-                                    }}
-                                    value={newGoal.targetValue}
-                                    onChangeText={(text) => setNewGoal({ ...newGoal, targetValue: text })}
-                                    placeholder="100"
-                                    keyboardType="numeric"
-                                />
-                                <TextInput
-                                    style={{
-                                        flex: 1,
-                                        borderWidth: 1,
-                                        borderColor: '#d1d5db',
-                                        borderRadius: 12,
-                                        padding: 16,
-                                        fontSize: 16,
-                                        backgroundColor: '#f9fafb',
-                                    }}
-                                    value={newGoal.unit}
-                                    onChangeText={(text) => setNewGoal({ ...newGoal, unit: text })}
-                                    placeholder="%, $, MPG"
-                                />
-                            </View>
-                        </View>
-
-                        <View style={{ marginBottom: 20 }}>
-                            <Text style={{ fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#374151' }}>
-                                Deadline
-                            </Text>
-                            <TextInput
-                                style={{
-                                    borderWidth: 1,
-                                    borderColor: '#d1d5db',
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    fontSize: 16,
-                                    backgroundColor: '#f9fafb',
-                                }}
-                                value={newGoal.deadline}
-                                onChangeText={(text) => setNewGoal({ ...newGoal, deadline: text })}
-                                placeholder="2025-01-31"
-                            />
-                        </View>
-                    </ScrollView>
-                </View>
-            </Modal>
+      {/* Header */}
+      <LinearGradient
+        colors={[colors.primary, colors.primaryLight]}
+        style={styles.header}
+      >
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Financial Goals</Text>
+          <Text style={styles.headerSubtitle}>
+            ₹{totalSaved.toLocaleString()} saved of ₹{totalTarget.toLocaleString()}
+          </Text>
         </View>
-    );
+        
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => setShowAddGoal(true)}
+        >
+          <Ionicons name="add" size={24} color={colors.textInverse} />
+        </TouchableOpacity>
+      </LinearGradient>
+
+      {/* Goals List */}
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {goals.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="flag" size={64} color={colors.textLight} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              No Goals Yet
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+              Set your first financial goal to start building your future
+            </Text>
+            <TouchableOpacity
+              style={[styles.emptyButton, { backgroundColor: colors.primary }]}
+              onPress={() => setShowAddGoal(true)}
+            >
+              <Text style={styles.emptyButtonText}>Create Your First Goal</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            {goals.map((goal) => (
+              <GoalProgressCard
+                key={goal.id}
+                goalName={goal.name}
+                currentAmount={goal.currentAmount}
+                targetAmount={goal.targetAmount}
+                icon={goal.icon}
+                onAddFunds={() => setShowAddFunds(goal.id)}
+              />
+            ))}
+
+            {/* Summary Card */}
+            <View style={[styles.summaryCard, { backgroundColor: colors.backgroundCard }]}>
+              <Text style={[styles.summaryTitle, { color: colors.text }]}>
+                Goals Summary
+              </Text>
+              <View style={styles.summaryStats}>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Active Goals
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.primary }]}>
+                    {goals.length}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Total Saved
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.success }]}>
+                    ₹{totalSaved.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                    Progress
+                  </Text>
+                  <Text style={[styles.summaryValue, { color: colors.primary }]}>
+                    {totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0}%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+
+      {/* Add Goal Modal */}
+      <Modal visible={showAddGoal} animationType="slide" presentationStyle="pageSheet">
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={() => setShowAddGoal(false)}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>New Goal</Text>
+            <TouchableOpacity onPress={handleCreateGoal}>
+              <Text style={[styles.modalSave, { color: colors.primary }]}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView style={styles.modalContent}>
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Goal Name</Text>
+            <TextInput
+              style={[styles.textInput, { 
+                backgroundColor: colors.backgroundCard,
+                borderColor: colors.border,
+                color: colors.text 
+              }]}
+              placeholder="e.g., Emergency Fund, New Vehicle..."
+              placeholderTextColor={colors.textLight}
+              value={newGoal.name}
+              onChangeText={(text) => setNewGoal(prev => ({ ...prev, name: text }))}
+            />
+
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Target Amount</Text>
+            <TextInput
+              style={[styles.textInput, { 
+                backgroundColor: colors.backgroundCard,
+                borderColor: colors.border,
+                color: colors.text 
+              }]}
+              placeholder="₹25,000"
+              placeholderTextColor={colors.textLight}
+              value={formatCurrency(newGoal.targetAmount)}
+              onChangeText={(text) => setNewGoal(prev => ({ 
+                ...prev, 
+                targetAmount: text.replace(/[^\d]/g, '') 
+              }))}
+              keyboardType="numeric"
+            />
+
+            <Text style={[styles.inputLabel, { color: colors.text }]}>Category</Text>
+            <View style={styles.categoryGrid}>
+              {goalCategories.map((category) => (
+                <TouchableOpacity
+                  key={category.key}
+                  style={[
+                    styles.categoryItem,
+                    { 
+                      backgroundColor: colors.backgroundCard,
+                      borderColor: newGoal.category === category.key ? category.color : colors.border,
+                      borderWidth: newGoal.category === category.key ? 2 : 1,
+                    }
+                  ]}
+                  onPress={() => handleCategorySelect(category.key)}
+                >
+                  <Ionicons 
+                    name={category.icon} 
+                    size={24} 
+                    color={newGoal.category === category.key ? category.color : colors.textSecondary} 
+                  />
+                  <Text style={[
+                    styles.categoryLabel, 
+                    { 
+                      color: newGoal.category === category.key ? category.color : colors.textSecondary 
+                    }
+                  ]}>
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Add Funds Modal */}
+      <Modal visible={showAddFunds !== null} animationType="slide" transparent>
+        <View style={styles.fundModalOverlay}>
+          <View style={[styles.fundModal, { backgroundColor: colors.backgroundCard }]}>
+            <Text style={[styles.fundModalTitle, { color: colors.text }]}>Add Funds</Text>
+            <TextInput
+              style={[styles.fundInput, { 
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+                color: colors.text 
+              }]}
+              placeholder="₹500"
+              placeholderTextColor={colors.textLight}
+              value={formatCurrency(fundAmount)}
+              onChangeText={(text) => setFundAmount(text.replace(/[^\d]/g, ''))}
+              keyboardType="numeric"
+              autoFocus
+            />
+            <View style={styles.fundModalButtons}>
+              <TouchableOpacity 
+                style={[styles.fundModalButton, { backgroundColor: colors.border }]}
+                onPress={() => {
+                  setShowAddFunds(null);
+                  setFundAmount('');
+                }}
+              >
+                <Text style={[styles.fundModalButtonText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.fundModalButton, { backgroundColor: colors.primary }]}
+                onPress={() => {
+                  const amount = parseInt(fundAmount);
+                  if (amount > 0 && showAddFunds) {
+                    handleAddFunds(showAddFunds, amount);
+                  }
+                }}
+                disabled={!fundAmount || parseInt(fundAmount) <= 0}
+              >
+                <Text style={styles.fundModalButtonTextPrimary}>Add</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 60 : StatusBar.currentHeight! + 20,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerContent: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: Typography.xxl,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    marginBottom: Spacing.xs,
+  },
+  headerSubtitle: {
+    fontSize: Typography.md,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  addButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: Spacing.xl * 2,
+  },
+  emptyTitle: {
+    fontSize: Typography.xl,
+    fontWeight: 'bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xs,
+  },
+  emptySubtitle: {
+    fontSize: Typography.md,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  emptyButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+  },
+  emptyButtonText: {
+    fontSize: Typography.md,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  summaryCard: {
+    marginTop: Spacing.lg,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+  },
+  summaryTitle: {
+    fontSize: Typography.lg,
+    fontWeight: 'bold',
+    marginBottom: Spacing.lg,
+  },
+  summaryStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: Typography.xs,
+    textTransform: 'uppercase',
+    marginBottom: Spacing.xs,
+  },
+  summaryValue: {
+    fontSize: Typography.lg,
+    fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    paddingTop: Platform.OS === 'ios' ? 60 : Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: Typography.xl,
+    fontWeight: 'bold',
+  },
+  modalSave: {
+    fontSize: Typography.md,
+    fontWeight: '600',
+  },
+  modalContent: {
+    flex: 1,
+    padding: Spacing.lg,
+  },
+  inputLabel: {
+    fontSize: Typography.xs,
+    textTransform: 'uppercase',
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.lg,
+  },
+  textInput: {
+    fontSize: Typography.md,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  categoryItem: {
+    width: '47%',
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  categoryLabel: {
+    fontSize: Typography.xs,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
+  },
+  fundModalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  fundModal: {
+    width: '80%',
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+  },
+  fundModalTitle: {
+    fontSize: Typography.lg,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  fundInput: {
+    fontSize: Typography.xl,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.lg,
+  },
+  fundModalButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  fundModalButton: {
+    flex: 1,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+  },
+  fundModalButtonText: {
+    fontSize: Typography.md,
+    fontWeight: '600',
+  },
+  fundModalButtonTextPrimary: {
+    fontSize: Typography.md,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+});
