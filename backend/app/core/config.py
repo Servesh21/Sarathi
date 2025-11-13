@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     OPENWEATHER_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
     
+    # NEW: Optimized Agent APIs
+    GOOGLE_API_KEY: str = ""  # For Gemini 1.5 Flash
+    
+    # NEW: Optimization Settings
+    ENVIRONMENT: str = "development"
+    LOG_LEVEL: str = "INFO"
+    MAX_WORKERS: int = 4
+    
     # CORS
     BACKEND_CORS_ORIGINS: list = ["*"]
     

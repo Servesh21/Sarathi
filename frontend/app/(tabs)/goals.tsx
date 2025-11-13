@@ -9,6 +9,7 @@ import {
     Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { agentAPI } from '../../src/services/api';
 
 interface Goal {
     id: string;
@@ -138,16 +139,37 @@ export default function GoalsScreen() {
                             Track your driving progress
                         </Text>
                     </View>
-                    <TouchableOpacity
-                        style={{
-                            backgroundColor: 'rgba(255,255,255,0.2)',
-                            borderRadius: 12,
-                            padding: 12,
-                        }}
-                        onPress={() => setShowAddModal(true)}
-                    >
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>+ New</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                borderRadius: 12,
+                                padding: 12,
+                                minWidth: 50,
+                                alignItems: 'center',
+                            }}
+                            onPress={async () => {
+                                try {
+                                    const response = await agentAPI.sendMessage("Give me advice on improving my driving goals and earnings");
+                                    Alert.alert("AI Advice", response.data.response || "I can help you optimize your driving goals!");
+                                } catch (error) {
+                                    Alert.alert("AI Assistant", "💡 Try asking about earnings, weather, or finding mechanics on the main dashboard!");
+                                }
+                            }}
+                        >
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>🤖 AI</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                borderRadius: 12,
+                                padding: 12,
+                            }}
+                            onPress={() => setShowAddModal(true)}
+                        >
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>+ New</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </LinearGradient>
 

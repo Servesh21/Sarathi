@@ -9,6 +9,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../src/stores/authStore';
 import { router } from 'expo-router';
+import { agentAPI } from '@/src/services/api';
 
 export default function ProfileScreen() {
     const { user, logout } = useAuthStore();
@@ -68,6 +69,29 @@ export default function ProfileScreen() {
                     <Text style={{ color: 'rgba(255,255,255,0.9)', fontSize: 16 }}>
                         {user?.email || 'user@example.com'}
                     </Text>
+
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderRadius: 12,
+                            padding: 12,
+                            marginTop: 16,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 8,
+                        }}
+                        onPress={async () => {
+                            try {
+                                const response = await agentAPI.sendMessage("Give me personalized driving insights and recommendations");
+                                Alert.alert("🚗 Driving Insights", response.data.response || "I can help you improve your driving performance!");
+                            } catch (error) {
+                                Alert.alert("AI Assistant", "💡 Ask me about driving tips, weather, earnings, or finding mechanics on the main dashboard!");
+                            }
+                        }}
+                    >
+                        <Text style={{ color: 'white', fontSize: 16 }}>🤖</Text>
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>AI Driving Insights</Text>
+                    </TouchableOpacity>
                 </View>
             </LinearGradient>
 

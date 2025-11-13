@@ -5,7 +5,8 @@ from typing import Optional, Dict, Any
 from app.db.database import get_db
 from app.db.models import User
 from app.api.v1.endpoints.auth import get_current_user
-from app.agent_core.graphs.orchestrator import AgentOrchestrator
+from app.agent_core.graphs.orchestrator import orchestrator
+from langchain_core.messages import HumanMessage
 
 router = APIRouter()
 
@@ -29,26 +30,28 @@ async def chat_with_agent(
 ):
     """
     Interact with the Sarathi agent.
-    The orchestrator will route the query to the appropriate specialized agent.
+    The optimized orchestrator will route the query to the appropriate specialized agent.
     """
-    try:
-        orchestrator = AgentOrchestrator()
-        
+    try:        
         # Add user context
         context = agent_query.context or {}
         context["user_id"] = current_user.id
         context["user_email"] = current_user.email
         
-        # Process the query through the orchestrator
-        result = await orchestrator.process_query(
-            query=agent_query.query,
-            context=context
-        )
+        # Prepare state for optimized orchestrator
+        state = {
+            "messages": [HumanMessage(content=agent_query.query)],
+            "intent": "",
+            "response": ""
+        }
+        
+        # Process through optimized LangGraph orchestrator
+        result = orchestrator.invoke(state)
         
         return AgentResponse(
             response=result.get("response", ""),
-            agent_type=result.get("agent_type", "general"),
-            metadata=result.get("metadata", {})
+            agent_type=result.get("intent", "general"),
+            metadata={"intent": result.get("intent", ""), "user_context": context}
         )
     
     except Exception as e:
