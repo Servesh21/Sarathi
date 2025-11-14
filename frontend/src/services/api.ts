@@ -1,20 +1,21 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 
 // Configure API base URL - handles different environments
 const getBaseURL = () => {
-    // For Expo development
+    // 1) Prefer Expo public env var if provided
+    const envUrl = (process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.API_URL) as string | undefined;
+    if (envUrl) return envUrl.replace(/\/$/, '');
+
+    // 2) Dev mode sensible defaults
     if (__DEV__) {
-        // For physical device testing with Expo Go, use your computer's IP
-        // Your computer's IP addresses found: 192.168.29.61, 192.168.10.1
-
-        // Try this IP first (most likely to work):
-        return 'https://pbjpfwlj-8000.inc1.devtunnels.ms/api/v1';
-
-        // Fallback options if above doesn't work:
-        // return 'http://192.168.10.1:8000/api/v1';
-        // return 'http://localhost:8000/api/v1'; // For simulator/web only
+        // For physical device testing with Expo Go, set EXPO_PUBLIC_API_URL to your machine IP:
+        //   EXPO_PUBLIC_API_URL=http://192.168.x.x:8000/api/v1
+        // Fallback to dev tunnel or localhost
+        return 'http://localhost:8000/api/v1';
     }
-    // Production URL (when deployed)
+
+    // 3) Production URL (when deployed)
     return 'https://your-production-api.com/api/v1';
 };
 
@@ -69,6 +70,15 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+// Helpers
+export const getWsUrl = (userId: string) => {
+    // Convert http(s)://host[:port]/api/v1 -> ws(s)://host[:port]/api/v1
+    const base = API_BASE_URL.replace(/\/$/, '');
+    const wsProto = base.startsWith('https') ? 'wss' : 'ws';
+    const wsBase = base.replace(/^http(s)?:/, `${wsProto}:`);
+    return `${wsBase}/events/ws/${encodeURIComponent(userId)}`;
+};
 
 // Auth endpoints
 export const authAPI = {
@@ -133,4 +143,37 @@ export const userAPI = {
 
     addVehicle: (vehicleData: any) =>
         api.post('/user/vehicles', vehicleData),
+};
+
+// Events and Alerts endpoints
+export const eventsAPI = {
+    // Emit a generic event
+    emitEvent: (payload: {
+        event_type: string;
+        severity: 'low' | 'medium' | 'high' | 'critical';
+        user_id: string;
+        data?: Record<string, any>;
+        context?: Record<string, any>;
+    }) => api.post('/events/emit', payload),
+
+    // Monitoring controls
+    startMonitoring: (userId: string, config?: {
+        check_interval_seconds?: number;
+        vehicle_health_threshold?: number;
+        burnout_consecutive_days?: number;
+        financial_emergency_ratio?: number;
+    }) => api.post(`/events/monitoring/${encodeURIComponent(userId)}/start`, config ?? {}),
+
+    stopMonitoring: (userId: string) =>
+        api.post(`/events/monitoring/${encodeURIComponent(userId)}/stop`),
+
+    // Alerts
+    getAlerts: (userId: string, opts?: { status?: string; limit?: number }) =>
+        api.get(`/events/alerts/${encodeURIComponent(userId)}`, { params: opts ?? {} }),
+
+    acknowledgeAlert: (alertId: string, userId: string) =>
+        api.post(`/events/alerts/${encodeURIComponent(alertId)}/acknowledge`, null, { params: { user_id: userId } }),
+
+    dismissAlert: (alertId: string, userId: string) =>
+        api.post(`/events/alerts/${encodeURIComponent(alertId)}/dismiss`, null, { params: { user_id: userId } }),
 };

@@ -1,5 +1,5 @@
 // Fallback for using MaterialIcons on Android and web.
-
+import React from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
@@ -18,6 +18,11 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  // Added common icons used in tabs
+  'car.fill': 'directions-car',
+  'target': 'track-changes',
+  'person.fill': 'person',
+  'bell.fill': 'notifications',
 } as IconMapping;
 
 /**

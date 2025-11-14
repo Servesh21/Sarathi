@@ -10,7 +10,17 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npm install
    ```
 
-2. Start the app
+2. Configure API URL (optional but recommended)
+
+   Create a .env file at the project root (frontend/) and set your backend URL:
+
+   ```bash
+   EXPO_PUBLIC_API_URL=http://YOUR_COMPUTER_IP:8000/api/v1
+   ```
+
+   You can also use an HTTPS dev tunnel URL. The app will auto-fallback to `http://localhost:8000/api/v1` when running on web or emulator.
+
+3. Start the app
 
    ```bash
    npx expo start
@@ -24,6 +34,19 @@ In the output, you'll find options to open the app in a
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Backend integration cheatsheet
+
+- Real-time alerts WebSocket: `/api/v1/events/ws/{userId}`
+- Start monitoring: `POST /api/v1/events/monitoring/{userId}/start`
+- Stop monitoring: `POST /api/v1/events/monitoring/{userId}/stop`
+- Emit event: `POST /api/v1/events/emit`
+- Get alerts: `GET /api/v1/events/alerts/{userId}`
+
+In-app, use the Alerts tab (bell icon) to:
+- Connect to live WebSocket
+- Start/Stop monitoring
+- Emit a test event and see alerts arrive
 
 ## Get a fresh project
 

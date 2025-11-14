@@ -112,8 +112,8 @@ export default function GoalsScreen() {
   }, []);
 
   const handleAddFunds = (goalId: string, amount: number) => {
-    setGoals(prev => prev.map(goal => 
-      goal.id === goalId 
+    setGoals(prev => prev.map(goal =>
+      goal.id === goalId
         ? { ...goal, currentAmount: goal.currentAmount + amount }
         : goal
     ));
@@ -180,7 +180,7 @@ export default function GoalsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar 
+      <StatusBar
         barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
         backgroundColor={colors.background}
       />
@@ -196,8 +196,8 @@ export default function GoalsScreen() {
             ₹{totalSaved.toLocaleString()} saved of ₹{totalTarget.toLocaleString()}
           </Text>
         </View>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.addButton}
           onPress={() => setShowAddGoal(true)}
         >
@@ -294,10 +294,10 @@ export default function GoalsScreen() {
           <ScrollView style={styles.modalContent}>
             <Text style={[styles.inputLabel, { color: colors.text }]}>Goal Name</Text>
             <TextInput
-              style={[styles.textInput, { 
+              style={[styles.textInput, {
                 backgroundColor: colors.backgroundCard,
                 borderColor: colors.border,
-                color: colors.text 
+                color: colors.text
               }]}
               placeholder="e.g., Emergency Fund, New Vehicle..."
               placeholderTextColor={colors.textLight}
@@ -307,17 +307,17 @@ export default function GoalsScreen() {
 
             <Text style={[styles.inputLabel, { color: colors.text }]}>Target Amount</Text>
             <TextInput
-              style={[styles.textInput, { 
+              style={[styles.textInput, {
                 backgroundColor: colors.backgroundCard,
                 borderColor: colors.border,
-                color: colors.text 
+                color: colors.text
               }]}
               placeholder="₹25,000"
               placeholderTextColor={colors.textLight}
               value={formatCurrency(newGoal.targetAmount)}
-              onChangeText={(text) => setNewGoal(prev => ({ 
-                ...prev, 
-                targetAmount: text.replace(/[^\d]/g, '') 
+              onChangeText={(text) => setNewGoal(prev => ({
+                ...prev,
+                targetAmount: text.replace(/[^\d]/g, '')
               }))}
               keyboardType="numeric"
             />
@@ -329,7 +329,7 @@ export default function GoalsScreen() {
                   key={category.key}
                   style={[
                     styles.categoryItem,
-                    { 
+                    {
                       backgroundColor: colors.backgroundCard,
                       borderColor: newGoal.category === category.key ? category.color : colors.border,
                       borderWidth: newGoal.category === category.key ? 2 : 1,
@@ -337,15 +337,15 @@ export default function GoalsScreen() {
                   ]}
                   onPress={() => handleCategorySelect(category.key)}
                 >
-                  <Ionicons 
-                    name={category.icon} 
-                    size={24} 
-                    color={newGoal.category === category.key ? category.color : colors.textSecondary} 
+                  <Ionicons
+                    name={category.icon}
+                    size={24}
+                    color={newGoal.category === category.key ? category.color : colors.textSecondary}
                   />
                   <Text style={[
-                    styles.categoryLabel, 
-                    { 
-                      color: newGoal.category === category.key ? category.color : colors.textSecondary 
+                    styles.categoryLabel,
+                    {
+                      color: newGoal.category === category.key ? category.color : colors.textSecondary
                     }
                   ]}>
                     {category.label}
@@ -363,10 +363,10 @@ export default function GoalsScreen() {
           <View style={[styles.fundModal, { backgroundColor: colors.backgroundCard }]}>
             <Text style={[styles.fundModalTitle, { color: colors.text }]}>Add Funds</Text>
             <TextInput
-              style={[styles.fundInput, { 
+              style={[styles.fundInput, {
                 backgroundColor: colors.background,
                 borderColor: colors.border,
-                color: colors.text 
+                color: colors.text
               }]}
               placeholder="₹500"
               placeholderTextColor={colors.textLight}
@@ -376,7 +376,7 @@ export default function GoalsScreen() {
               autoFocus
             />
             <View style={styles.fundModalButtons}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.fundModalButton, { backgroundColor: colors.border }]}
                 onPress={() => {
                   setShowAddFunds(null);
@@ -385,7 +385,7 @@ export default function GoalsScreen() {
               >
                 <Text style={[styles.fundModalButtonText, { color: colors.text }]}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[styles.fundModalButton, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   const amount = parseInt(fundAmount);

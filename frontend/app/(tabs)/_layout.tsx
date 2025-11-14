@@ -6,10 +6,12 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useAlertsStore } from '@/src/stores/alertsStore';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isAuthenticated } = useAuthStore();
+  const { unreadCount } = useAlertsStore();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -53,6 +55,14 @@ export default function TabLayout() {
         options={{
           title: 'Goals',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="target" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="bell.fill" color={color} />,
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         }}
       />
       <Tabs.Screen
