@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+*.log
+node_modules/
+.expo/
+.DS_Store
+postgres_data/
+redis_data/
+chroma_data/
+*.sqlite3
+dist/
+build/
+.venv/

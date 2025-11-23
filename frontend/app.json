@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Sarathi",
+    "slug": "sarathi-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sarathi.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.sarathi.app",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Sarathi to access your photos to upload vehicle images.",
+          "cameraPermission": "Allow Sarathi to use your camera to take vehicle photos."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow Sarathi to record voice messages for trip logging."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Sarathi to use your location for trip tracking and zone recommendations."
+        }
+      ],
+      "expo-secure-store",
+      "expo-font"
+    ]
+  }
+}
