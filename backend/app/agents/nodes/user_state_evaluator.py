@@ -32,9 +32,10 @@ class UserStateEvaluator:
         state['financial_data'] = {'goals': goals}
         
         # Classify query type using LLM
+        # UPDATED PROMPT: Added "log earnings" to the action examples
         classification_prompt = f"""Classify this user query into one of these categories:
-- action: User wants to perform an action (log trip, report vehicle issue, create goal, etc.)
-  Examples: "I completed a trip", "My brake is making noise", "I want to save for a bike"
+- action: User wants to perform an action (log earnings, log trip, report vehicle issue, create goal, etc.)
+  Examples: "I earned 500 rupees", "I completed a trip", "My brake is making noise", "I want to save for a bike"
 - earnings: Questions about income, trips, high-value zones
 - vehicle: Questions about vehicle health, maintenance
 - financial: Questions about savings, investments, goals
