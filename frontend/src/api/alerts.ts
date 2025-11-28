@@ -23,6 +23,9 @@ export interface AgentResponse {
     action_items: string[];
     query_type: string;
     analysis?: any;
+    // NEW FIELDS FOR VOICE
+    audio_url?: string | null;     
+    transcription?: string; 
 }
 
 export const alertsAPI = {
@@ -42,8 +45,29 @@ export const alertsAPI = {
 };
 
 export const agentAPI = {
+    // Standard Text Chat
     chat: async (query: string): Promise<AgentResponse> => {
         const response = await api.post<AgentResponse>('/agent/chat', { query });
         return response.data;
     },
+
+    // NEW: Voice Chat (Uploads Audio File)
+    voiceChat: async (audioUri: string): Promise<AgentResponse> => {
+        const formData = new FormData();
+        
+        // React Native specific FormData structure
+        formData.append('file', {
+            uri: audioUri,
+            name: 'voice_message.m4a', // Naming it .m4a helps backend identify it
+            type: 'audio/m4a',         // Standard iOS/Android audio type
+        } as any);
+
+        // We use the same 'api' instance so Auth Tokens are included automatically
+        const response = await api.post<AgentResponse>('/agent/voice-chat', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    }
 };

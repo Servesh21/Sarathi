@@ -1,56 +1,43 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# ===========================
+# 🐍 BACKEND (Python/FastAPI)
+# ===========================
+backend/__pycache__/
+backend/*.py[cod]
+backend/*$py.class
+backend/venv/
+backend/env/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
 
-# Environment
-.env
-.env.local
+# --- Database & Storage ---
+*.db
+*.sqlite3
+backend/chroma_data/       # Vector Database memory
+backend/app/static/audio/* # Temp voice files (Don't leak these!)
 
-# IDE
+# --- Secrets ---
+backend/.env
+backend/.env.local
+
+# ===========================
+# 📱 FRONTEND (React Native)
+# ===========================
+frontend/node_modules/     # <--- CRITICAL: Do not upload this!
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
+frontend/npm-debug.log
+frontend/yarn-error.log
+frontend/android/          # Optional: exclude if not ejecting
+frontend/ios/              # Optional: exclude if not ejecting
+
+# ===========================
+# 💻 SYSTEM & IDE
+# ===========================
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-
-# Logs
-*.log
-logs/
-
-# Database
-*.db
-*.sqlite3
-
-# Uploads
-uploads/
-chroma_data/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# OS
-.DS_Store
-Thumbs.db

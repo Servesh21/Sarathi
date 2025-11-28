@@ -261,6 +261,35 @@ class DatabaseTool:
             'distance_km': new_trip.distance_km,
             'created_at': new_trip.created_at.isoformat()
         }
+
+    # --- THIS IS THE NEW METHOD ADDED ---
+    async def log_earnings(self, user_id: int, amount: float, description: str = "Manual Entry"):
+        """
+        Tool to save earnings when a user reports them in chat.
+        Usage: If user says "I earned 500 rupees", call log_earnings(user_id, 500).
+        """
+        try:
+            # Create a simplified trip entry just for the earnings
+            new_trip = Trip(
+                user_id=user_id,
+                start_location="Manual Entry (Chat)",
+                end_location="Manual Entry (Chat)",
+                start_time=datetime.now(),
+                end_time=datetime.now(),
+                earnings=amount,
+                net_earnings=amount, # Assuming no costs for manual entry
+                status="completed",
+                trip_type="manual"
+            )
+            
+            self.db.add(new_trip)
+            await self.db.commit()
+            
+            return f"✅ Success! I have recorded ₹{amount} to your earnings."
+            
+        except Exception as e:
+            return f"❌ Error saving earnings: {str(e)}"
+    # ------------------------------------
     
     async def create_vehicle_check(
         self,
