@@ -10,48 +10,10 @@ from app.agents.tools import DatabaseTool, MapsTool, FinancialTool, ChromaTool
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, Any
 from langchain_core.messages import AIMessage
-from app.services.voice import transcribe_audio, text_to_speech 
+
 
 class SarathiAgent:
     """Main Sarathi Agent orchestrating all nodes"""
-
-    # ... inside SarathiAgent class ...
-
-    async def process_voice_query(
-        self,
-        user_id: int,
-        audio_file_path: str,
-        user_profile: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Process a voice audio file:
-        1. Transcribe Audio -> Text
-        2. Process Text through Agent
-        3. Convert Response Text -> Audio
-        """
-        
-        # 1. HEAR: Transcribe
-        query_text = await transcribe_audio(audio_file_path)
-        
-        if not query_text:
-            return {
-                "response": "I couldn't hear you clearly. Could you please try again?",
-                "audio_url": None,
-                "text_query": ""
-            }
-
-        # 2. THINK: Run the existing process_query logic
-        agent_result = await self.process_query(user_id, query_text, user_profile)
-        
-        # 3. SPEAK: Convert response to speech
-        audio_url = await text_to_speech(agent_result['response'])
-        
-        # Return combined result
-        return {
-            **agent_result,          # All the normal data (text response, recommendations, etc.)
-            "text_query": query_text, # What the user said (text)
-            "audio_url": audio_url   # The file path to play back
-        }
     
     def __init__(self, db: AsyncSession):
         # Initialize tools
