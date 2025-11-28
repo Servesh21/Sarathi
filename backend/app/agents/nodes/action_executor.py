@@ -35,16 +35,6 @@ class ActionExecutor:
             if action_type == 'log_trip':
                 result = await self._log_trip(user_profile['user_id'], action_data.get('trip_data', {}))
             
-            # --- NEW: Added Log Earnings Support ---
-            elif action_type == 'log_earnings':
-                # Try to get amount from specific field, or fallback to trip_data
-                amount = action_data.get('amount') 
-                if not amount and 'trip_data' in action_data:
-                    amount = action_data['trip_data'].get('earnings')
-                
-                result = await self._log_earnings_manual(user_profile['user_id'], float(amount or 0))
-            # ---------------------------------------
-
             elif action_type == 'vehicle_check':
                 result = await self._create_vehicle_check(user_profile['user_id'], action_data.get('check_data', {}))
             
@@ -71,21 +61,16 @@ class ActionExecutor:
     async def _extract_action_data(self, query: str) -> Dict[str, Any]:
         """Extract action type and parameters from natural language"""
         
-        # UPDATED PROMPT: Added 'log_earnings' instructions
         system_prompt = """You are an AI that extracts structured action data from user queries.
 
 Identify the action type and extract relevant parameters:
 
 Action Types:
-- log_earnings: User mentions earning a specific amount (e.g., "I earned 500", "Made 200 rs today")
-- log_trip: User wants to log a FULL trip details (e.g., "Trip from A to B for 450")
+- log_trip: User wants to log a trip (e.g., "I completed a trip from Indiranagar to Whitefield for 450 rupees")
 - vehicle_check: User reports vehicle issue (e.g., "My brake is making noise", "Engine light is on")
 - create_goal: User wants to set a financial goal (e.g., "I want to save 50000 for a new phone")
 - update_goal: User wants to update goal progress (e.g., "I saved 5000 towards my goal")
 - query: Just asking for information (no action needed)
-
-For log_earnings, extract:
-- amount: The numerical value (e.g. 500)
 
 For log_trip, extract:
 - start_location: pickup location
@@ -111,7 +96,7 @@ For update_goal, extract:
 
 Return ONLY a valid JSON object with this structure:
 {
-    "action_type": "log_earnings|log_trip|vehicle_check|create_goal|update_goal|query",
+    "action_type": "log_trip|vehicle_check|create_goal|update_goal|query",
     "trip_data": {...},
     "check_data": {...},
     "goal_data": {...},
@@ -138,27 +123,6 @@ Return ONLY a valid JSON object with this structure:
         except:
             return {'action_type': 'query'}
     
-    # --- NEW METHOD: LOG EARNINGS MANUAL ---
-    async def _log_earnings_manual(self, user_id: int, amount: float) -> Dict[str, Any]:
-        """Log simple earnings manual entry"""
-        
-        # Call the new tool we added to DatabaseTool
-        msg = await self.db_tool.log_earnings(user_id, amount)
-        
-        return {
-            'status': 'success',
-            'amount': amount,
-            'message': msg,
-            'recommendations': [
-                f"Great job earning ₹{amount}!",
-                "Check your daily total in the dashboard."
-            ],
-            'action_items': [
-                "Earnings recorded successfully"
-            ]
-        }
-    # ---------------------------------------
-
     async def _log_trip(self, user_id: int, trip_data: Dict[str, Any]) -> Dict[str, Any]:
         """Log a trip"""
         
@@ -281,7 +245,6 @@ Return ONLY a valid JSON object with this structure:
         system_prompt = """You are Sarathi, a friendly AI companion for drivers in India.
 
 Generate a warm, encouraging response based on the action performed.
-If the action was logging earnings, confirm the amount explicitly.
 Use Indian context, rupees, and friendly tone.
 Keep it conversational and helpful."""
 
